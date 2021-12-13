@@ -1,0 +1,32 @@
+.main__conatiner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .main__svg__container {
+    margin-bottom: 15px;
+  }
+  .main__button__container {
+    margin-top: 40px;
+  }
+  div {
+    display: flex;
+    p {
+      font-size: 32px;
+      color: #fff;
+      font-weight: 600;
+      letter-spacing: 1.7px;
+    }
+  }
+}
+
+.session__frame {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: none;
+  outline: none;
+}
