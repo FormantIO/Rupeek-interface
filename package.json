@@ -7,8 +7,10 @@
     "serve": "vite preview"
   },
   "dependencies": {
+    "@types/node": "^16.11.13",
     "@types/react-router-dom": "^5.3.2",
     "axios": "^0.24.0",
+    "buffer": "^6.0.3",
     "mobx": "^6.3.8",
     "mobx-react": "^7.2.1",
     "node-sass": "^7.0.0",
