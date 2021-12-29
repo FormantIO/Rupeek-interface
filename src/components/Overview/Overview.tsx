@@ -58,9 +58,13 @@ const Overview: FC<OverviewProps> = observer((props) => {
       </div>
       <div className="close__btn__container">
         <button
-          className="close__btn"
+          className="close__btn scale-up-center"
           onClick={() => {
-            props.DeviceStore.closeSession();
+            let iframe = document.getElementById("sessionWindow");
+            iframe?.classList.add("scale-out-bl");
+            setTimeout(() => {
+              props.DeviceStore.closeSession();
+            }, 200);
           }}
         >
           EXIT
