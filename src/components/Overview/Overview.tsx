@@ -1,4 +1,4 @@
-import { useRef, useEffect, FC } from "react";
+import { useEffect, FC } from "react";
 import "./Overview.scss";
 import CustomButton from "../CustomButton/CustomButton";
 import Devices from "../Devices/Devices";
@@ -11,12 +11,10 @@ interface OverviewProps {
 }
 
 const Overview: FC<OverviewProps> = observer((props) => {
-  const iframeSession = useRef(null);
-
   let closebtn = document.querySelector(".close__btn") as HTMLElement;
 
   useEffect(() => {
-    props.DeviceStore.setDevicesInQueue(0);
+    // props.DeviceStore.setDevicesInQueue();
 
     if (closebtn) closebtn!.style.display = "none";
     if (props.DeviceStore.isSessionInProgress) {
@@ -35,12 +33,9 @@ const Overview: FC<OverviewProps> = observer((props) => {
       {props.DeviceStore.isSessionInProgress && (
         <iframe
           id="sessionWindow"
-          ref={iframeSession}
           className="session__frame"
           src={props.DeviceStore.teleopUrl!}
-        >
-          {}
-        </iframe>
+        />
       )}
       <div className="main__conatiner">
         <DeviceIcon size={48} color="white" />
