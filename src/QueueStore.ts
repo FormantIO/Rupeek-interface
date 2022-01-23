@@ -5,11 +5,18 @@ import config from "./config";
 import { defined } from "./define";
 import { urlSafeEncode } from "./urlSafeEncode";
 
+export enum sessionResult {
+  successful,
+  unsuccesful,
+  notCompleted,
+}
+
 export class QueueStore {
   devicesInQueue: number = Math.floor(Math.random() * 10);
   deviceId: string | null = null;
   isSessionInProgress: boolean | null = false;
   teleopUrl: string | null = null;
+  IWantToExit: boolean = false;
 
   constructor() {
     makeObservable(this, {
@@ -17,29 +24,64 @@ export class QueueStore {
       deviceId: observable,
       isSessionInProgress: observable,
       teleopUrl: observable,
+      IWantToExit: observable,
       startTeleopSession: action,
       setDevicesInQueue: action,
-      closeSession: action,
+      completeSession: action,
+      closePopup: action,
     });
   }
   startTeleopSession = async (deviceId: string) => {
     this.isSessionInProgress = true;
+
+    await Authentication.waitTilAuthenticated();
+
     if (!Authentication.token) {
       this.isSessionInProgress = false;
       this.teleopUrl = null;
     }
-    this.teleopUrl = `${config.TELEOP__API}/${defined(
-      deviceId
-    )}?token=${urlSafeEncode(defined(Authentication.token))}`;
+    this.teleopUrl = `${config.TELEOP__API}/${defined(deviceId)}?token=${
+      Authentication.token
+    }`;
     console.log(this.teleopUrl);
   };
-  closeSession() {
+
+  closePopup(_: sessionResult) {
+    switch (_) {
+      case sessionResult.successful: {
+        //Make API request to set success in session
+        console.log("success");
+        this.IWantToExit = false;
+        this.isSessionInProgress = false;
+        this.teleopUrl = null;
+        break;
+      }
+      case sessionResult.unsuccesful: {
+        console.log("put back in queue");
+        this.IWantToExit = false;
+        this.isSessionInProgress = false;
+        this.teleopUrl = null;
+        break;
+      }
+      case sessionResult.notCompleted: {
+        console.log("not yet");
+        this.IWantToExit = false;
+        break;
+      }
+      default: {
+        this.IWantToExit = false;
+        break;
+      }
+    }
+  }
+
+  completeSession() {
     //Session can be terminated by operator, or due to timeout once session is close i should
     //make a reequest to the server with the id of the device and state for the task(completed/not completed)
-
-    this.isSessionInProgress = false;
-    this.setDevicesInQueue(this.devicesInQueue - 1);
-    this.teleopUrl = "";
+    console.log(this);
+    this.IWantToExit = true;
+    // this.setDevicesInQueue(this.devicesInQueue - 1);
+    // this.teleopUrl = "";
   }
 
   setDevicesInQueue(quanitity: number) {

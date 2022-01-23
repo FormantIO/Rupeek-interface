@@ -1,10 +1,12 @@
 import { useEffect, FC } from "react";
 import "./Overview.scss";
-import CustomButton from "../CustomButton/CustomButton";
+import Button from "../Button/Button";
 import Devices from "../Devices/Devices";
 import { QueueStore } from "../../QueueStore";
 import { observer } from "mobx-react";
 import { DeviceIcon } from "../../icons/DeviceIcon";
+import Popup from "../PopUp/Popup";
+import { sessionResult } from "../../QueueStore";
 
 interface OverviewProps {
   DeviceStore: QueueStore;
@@ -15,7 +17,6 @@ const Overview: FC<OverviewProps> = observer((props) => {
 
   useEffect(() => {
     // props.DeviceStore.setDevicesInQueue();
-
     if (closebtn) closebtn!.style.display = "none";
     if (props.DeviceStore.isSessionInProgress) {
       setTimeout(() => {
@@ -27,8 +28,16 @@ const Overview: FC<OverviewProps> = observer((props) => {
   const spotId = "2c18bc8b-c5e4-4ea0-8886-a8363d185597";
   const turtleBotId = "c0fa284e-09ee-4080-9d0f-560592e27929";
 
+  const sessionResolution = (_: sessionResult) => {
+    props.DeviceStore.closePopup(_);
+  };
+
   return (
     <div className="overview__container">
+      <Popup
+        IclosePopup={sessionResolution}
+        visible={props.DeviceStore.IWantToExit}
+      />
       <Devices quantity={props.DeviceStore.devicesInQueue} />
       {props.DeviceStore.isSessionInProgress && (
         <iframe
@@ -43,23 +52,25 @@ const Overview: FC<OverviewProps> = observer((props) => {
           <p>Device Available</p>
         </div>
         <div className="main__button__container">
-          <CustomButton
+          <Button
             onClick={() => {
               props.DeviceStore.startTeleopSession(turtleBotId);
             }}
-            label="START SESSION"
-          />
+          >
+            START SESSION
+          </Button>
         </div>
       </div>
       <div className="close__btn__container">
         <button
           className="close__btn scale-up-center"
           onClick={() => {
-            let iframe = document.getElementById("sessionWindow");
-            iframe?.classList.add("scale-out-bl");
-            setTimeout(() => {
-              props.DeviceStore.closeSession();
-            }, 200);
+            props.DeviceStore.completeSession();
+            // let iframe = document.getElementById("sessionWindow");
+            // iframe?.classList.add("scale-out-bl");
+            // setTimeout(() => {
+            //   props.DeviceStore.closeSession();
+            // }, 200);
           }}
         >
           EXIT
