@@ -10,3 +10,5 @@ Embedded App (fully customizable).
 ## Screenshots
 
 ![App Screenshot](https://github.com/FormantIO/Rupeek-interface/blob/main/src/images/interface.png)
+
+![App Screenshot](https://github.com/FormantIO/Rupeek-interface/blob/main/src/images/exit-session.png)

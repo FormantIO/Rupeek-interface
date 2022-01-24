@@ -4,14 +4,18 @@ import "./Button.scss";
 interface ButtonProps {
   onClick?: () => void;
   className?: string;
+  size: "small" | "medium" | "large";
 }
 
-const Button: FC<ButtonProps> = ({ onClick, className, children }) => {
+export const Button: FC<ButtonProps> = ({
+  onClick,
+  className,
+  children,
+  size,
+}) => {
   return (
-    <button onClick={onClick} className={`btn ${className} `}>
+    <button onClick={onClick} className={`btn btn-${size} ${className}`}>
       {children}
     </button>
   );
 };
-
-export default Button;
