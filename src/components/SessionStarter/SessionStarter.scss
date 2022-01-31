@@ -1,0 +1,22 @@
+.main__conatiner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .main__svg__container {
+    margin-bottom: 15px;
+  }
+  .main__button__container {
+    margin-top: 40px;
+  }
+  div {
+    display: flex;
+    padding: 10px 20px;
+    p {
+      font-size: 32px;
+      color: #fff;
+      font-weight: 600;
+      letter-spacing: 1.7px;
+    }
+  }
+}

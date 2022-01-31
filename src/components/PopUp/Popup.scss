@@ -6,10 +6,11 @@
   position: absolute;
   top: 0;
   left: 0;
-  display: flex;
+  display: none;
   justify-content: center;
   align-items: center;
   z-index: 5;
+  opacity: 0;
   .container {
     background-color: #2d3855;
     min-height: 150px;
@@ -61,15 +62,61 @@
   }
 }
 .modal-btn {
-  height: 30px;
-  width: 60px;
   margin-left: 14px;
-  font-weight: 600;
-  &:hover {
-    cursor: pointer;
-  }
 }
 .dark {
-  background-color: #3b4668;
-  color: #bac4e2;
+  background-color: #3b4668 !important;
+  color: #bac4e2 !important;
+}
+
+.fade-in {
+  -webkit-animation: fade-in 0.2s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+  animation: fade-in 0.2s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+}
+
+.fade-out {
+  -webkit-animation: fade-out 0.2s ease-out both;
+  animation: fade-out 0.2s ease-out both;
+}
+
+@-webkit-keyframes fade-in {
+  0% {
+    opacity: 0;
+    display: none;
+  }
+  100% {
+    opacity: 1;
+    display: flex;
+  }
+}
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    display: none;
+  }
+  100% {
+    opacity: 1;
+    display: flex;
+  }
+}
+
+@-webkit-keyframes fade-out {
+  0% {
+    opacity: 1;
+    z-index: 5;
+  }
+  100% {
+    opacity: 0;
+    z-index: 0;
+  }
+}
+@keyframes fade-out {
+  0% {
+    opacity: 1;
+    z-index: 5;
+  }
+  100% {
+    opacity: 0;
+    z-index: 0;
+  }
 }

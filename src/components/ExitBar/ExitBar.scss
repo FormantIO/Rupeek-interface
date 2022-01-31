@@ -1,0 +1,48 @@
+.close__btn {
+  cursor: pointer;
+  width: 54px;
+  height: 28px;
+  background-color: transparent;
+  box-shadow: 0 0 0 0 #ea719d;
+  outline: none;
+  border: none;
+  border-radius: 25px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  font-size: 11px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease-in-out;
+  color: transparent;
+}
+.close__btn:hover {
+  transform: scale(1.5px);
+}
+
+.scale-up-center {
+  -webkit-animation: scale-up-center 0.4s cubic-bezier(0.39, 0.575, 0.565, 1)
+    both;
+  animation: scale-up-center 0.4s cubic-bezier(0.39, 0.575, 0.565, 1) both;
+}
+
+@-webkit-keyframes scale-up-center {
+  0% {
+    -webkit-transform: scale(0.5);
+    transform: scale(0.5);
+  }
+  100% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+  }
+}
+@keyframes scale-up-center {
+  0% {
+    -webkit-transform: scale(0.5);
+    transform: scale(0.5);
+  }
+  100% {
+    -webkit-transform: scale(1);
+    transform: scale(1);
+  }
+}

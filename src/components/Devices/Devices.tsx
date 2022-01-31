@@ -5,7 +5,7 @@ interface DevicesProps {
   quantity?: number;
 }
 
-const Devices = (props: DevicesProps) => {
+export const Devices = (props: DevicesProps) => {
   return (
     <div className="devices__container">
       <DeviceIcon size={24} color="#bac4e2" />
@@ -18,5 +18,3 @@ const Devices = (props: DevicesProps) => {
     </div>
   );
 };
-
-export default Devices;
