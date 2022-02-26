@@ -1,0 +1,22 @@
+.snackbar {
+  background-color: #20a0ff;
+  z-index: 50;
+  height: 64px;
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 22px;
+  padding-left: 22px;
+  border-radius: 6px;
+  position: absolute;
+  bottom: 20px;
+  right: 30px;
+  span {
+    font-weight: 600;
+    letter-spacing: 1px;
+    font-size: 16px;
+    line-height: 27px;
+    margin-right: 16px;
+    margin-left: 12px;
+  }
+}

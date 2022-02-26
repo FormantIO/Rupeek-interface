@@ -1,18 +1,24 @@
-import { FC } from "react";
+import { FC, useEffect } from "react";
 import "./App.scss";
 import Overview from "./components/Overview/Overview";
-import { Route, Routes } from "react-router";
-import { DeviceStore } from "./QueueStore";
+import { Authentication } from "@formant/data-sdk";
 
 const App: FC = () => {
+  useEffect(() => {
+    saveToken();
+  }, []);
+
+  const saveToken = async () => {
+    if (await Authentication.waitTilAuthenticated()) {
+      localStorage.setItem("authToken", Authentication.token!);
+      console.log(Authentication.token!);
+    }
+  };
+
   return (
-    <>
-      <div className="App">
-        <Routes>
-          <Route path="/" element={<Overview DeviceStore={DeviceStore} />} />
-        </Routes>
-      </div>
-    </>
+    <div className="App">
+      <Overview />
+    </div>
   );
 };
 

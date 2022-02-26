@@ -24,7 +24,7 @@ export const Popup: FC<PopupProps> = observer(
         ></div>
         <div className="container">
           <div className="header">
-            <p>SESSION SUCCESSFUL?</p>
+            <p>Session successful?</p>
             <CloseIcon
               onClick={() => ISetSessionState(sessionResult.notDoneYet)}
               className="close-icon"

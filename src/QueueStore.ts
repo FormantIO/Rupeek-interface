@@ -1,85 +1,121 @@
-import { action, makeObservable, observable } from "mobx";
-import { Authentication } from "@formant/data-sdk";
-import axios from "axios";
-import config from "./config";
+import { makeAutoObservable } from "mobx";
+import { QueueService } from "./services/queue.service";
+import { config } from "./config";
 import { defined } from "./define";
-import { urlSafeEncode } from "./urlSafeEncode";
+import { intervention, queue } from "./types/interventions";
 
 export enum sessionResult {
   successful,
   unsuccesful,
   notDoneYet,
 }
-
 export class QueueStore {
-  devicesInQueue: number = Math.floor(Math.random() * 10);
-  deviceId: string | null = null;
+  devicesInQueue: number = 0;
+  private deviceId: string | null = null;
   isSessionInProgress: boolean | null = false;
   teleopUrl: string | null = null;
   isPopupOpen: boolean = false;
+  snackbar: boolean = false;
+  error: string = "";
 
-  constructor() {
-    makeObservable(this, {
-      devicesInQueue: observable,
-      deviceId: observable,
-      isSessionInProgress: observable,
-      teleopUrl: observable,
-      isPopupOpen: observable,
-      startTeleopSession: action,
-      setDevicesInQueue: action,
-      completeSession: action,
-      setSessionState: action,
-      exitSession: action,
-      clearSession: action,
-    });
+  constructor(private readonly queueService: QueueService) {
+    makeAutoObservable(this);
+    this.devicesInQueue = 0;
   }
-  startTeleopSession = async (deviceId: string) => {
-    this.isSessionInProgress = true;
-    await Authentication.waitTilAuthenticated();
 
-    if (!Authentication.token) {
-      this.isSessionInProgress = false;
-      this.teleopUrl = null;
+  fetchDevicesQueue = async () => {
+    try {
+      const queue: intervention[] | string = await this.queueService.getQueue();
+      if (typeof queue === "string") {
+        this.setError(queue);
+        return;
+      }
+      this.setDevicesInQueue(queue.length);
+      if (queue.length > 0) {
+        this.setDeviceId(queue[0].deviceId);
+      }
+    } catch (error) {
+      this.setError("Something went wrong");
     }
-    this.teleopUrl = `${config.TELEOP__API}/${defined(deviceId)}?token=${
-      Authentication.token
-    }`;
+  };
+  startTeleopSession = async () => {
+    this.setIsSessionInProgress(true);
+
+    if (!!this.deviceId || !!localStorage.getItem("authToken")) {
+      this.setIsSessionInProgress(false);
+      this.setTeleopUrl(null);
+      this.setError("unknown device");
+      console.log(this.error);
+      return;
+    }
+    this.setTeleopUrl(
+      `${config.TELEOP__API}/${defined(
+        this.deviceId
+      )}?token=${localStorage.getItem("authToken")}`
+    );
   };
 
-  setSessionState(_: sessionResult) {
-    if (sessionResult.successful) {
-      //Make API request to set success in session
-      console.log("success");
+  completeIntervention = async (_: sessionResult) => {
+    try {
+      const response = await this.queueService.completeIntervention(
+        sessionResult.successful ? "success" : "unsuccessful"
+      );
       this.clearSession();
-    } else if (sessionResult.unsuccesful) {
-      //Make API request to put device at the top of the queue
-      console.log("put back in queue");
-      this.clearSession();
+      this.showSnackbar();
+    } catch (error) {
+      console.log(error);
     }
+  };
+
+  showSnackbar() {
+    this.snackbar = true;
+  }
+  hideSnackbar() {
+    this.snackbar = false;
   }
 
   clearSession() {
-    this.isPopupOpen = false;
-    this.isSessionInProgress = false;
-    this.teleopUrl = null;
+    this.setIsPopUpOpen(false);
+    this.setIsSessionInProgress(false);
+    this.setTeleopUrl(null);
   }
 
   exitSession() {
     this.isPopupOpen = true;
   }
-  completeSession() {
-    //Session can be terminated by operator, or due to timeout once session is close i should
-    //make a reequest to the server with the id of the device and state for the task(completed/not completed)
+  // requestTo = async () => {
+  //   //Session can be terminated by operator, or due to timeout once session is close i should
+  //   //make a reequest to the server with the id of the device and state for the task(completed/not completed)
 
-    this.isPopupOpen = true;
-    // this.setDevicesInQueue(this.devicesInQueue - 1);
-    // this.teleopUrl = "";
-  }
+  //   try {
+  //     const response = await this.queueService.completeIntervention();
+  //     this.setIsPopUpOpen(true);
+  //   } catch (error) {
+  //     console.log(error);
+  //   }
+  //   this.isPopupOpen = true;
+  // };
 
-  setDevicesInQueue(quanitity: number) {
-    //Should be a get request, and expects a response with the size of the list of devices that need help
-    this.devicesInQueue = quanitity;
-  }
+  //SETTERS
+  setDevicesInQueue = (_: number) => {
+    this.devicesInQueue = _;
+  };
+  setDeviceId = (_: string | null) => {
+    this.deviceId = _;
+  };
+  setIsSessionInProgress = (_: boolean) => {
+    this.isSessionInProgress = _;
+  };
+  setTeleopUrl = (_: string | null) => {
+    this.teleopUrl = _;
+  };
+  setIsPopUpOpen = (_: boolean) => {
+    this.isPopupOpen = _;
+  };
+  setSnackBar = (_: boolean) => {
+    this.snackbar = _;
+  };
+  setError = (_: string) => {
+    this.error = _;
+  };
 }
-
-export const DeviceStore = new QueueStore();
