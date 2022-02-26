@@ -1,7 +1,7 @@
-import { useEffect, FC } from "react";
+import { useEffect, FC, useContext } from "react";
+import { StoreContext } from "../../store.context";
 import "./Overview.scss";
 import { Devices } from "../Devices/Devices";
-import { QueueStore } from "../../QueueStore";
 import { observer } from "mobx-react";
 import { Popup } from "../PopUp/Popup";
 import { sessionResult } from "../../QueueStore";
@@ -9,68 +9,70 @@ import { fadeIn } from "../../Utils/fadeIn";
 import { fadeOut } from "../../Utils/fadeOut";
 import { SessionStarter } from "../SessionStarter/SessionStarter";
 import { ExitBar } from "../ExitBar/ExitBar";
+import { Snackbar } from "../Snackbar/Snackbar";
 
-interface OverviewProps {
-  DeviceStore: QueueStore;
-}
-
-const Overview: FC<OverviewProps> = observer(({ DeviceStore }) => {
-  const { isSessionInProgress, isPopupOpen, devicesInQueue, teleopUrl } =
-    DeviceStore;
+const Overview: FC = observer(() => {
+  const { queueStore } = useContext(StoreContext);
 
   const closebtn = document.querySelector(".close__btn") as HTMLElement;
   const popup = document.getElementById("popup");
-  const spotId = "2c18bc8b-c5e4-4ea0-8886-a8363d185597";
-  const turtleBotId = "c0fa284e-09ee-4080-9d0f-560592e27929";
 
   useEffect(() => {
     if (closebtn) closebtn!.style.display = "none";
-    if (isSessionInProgress) {
+    if (queueStore.isSessionInProgress) {
       setTimeout(() => {
         closebtn!.style.display = "flex";
       }, 7000);
     }
-  }, [isSessionInProgress]);
+    queueStore.fetchDevicesQueue();
+  }, [queueStore.isSessionInProgress]);
 
   const sessionResolution = (_: sessionResult) => {
     if (_ === sessionResult.successful || _ === sessionResult.unsuccesful) {
       fadeOut(popup!);
-      DeviceStore.setSessionState(_);
+      queueStore.completeIntervention(_);
     } else if (_ === sessionResult.notDoneYet) fadeOut(popup!);
   };
 
   const sessionAction = () => {
-    if (devicesInQueue > 0) {
-      DeviceStore.startTeleopSession(turtleBotId);
+    if (queueStore.devicesInQueue > 0) {
+      queueStore.startTeleopSession();
     } else {
       //If no devices in queue an API call should be made
-      DeviceStore.setDevicesInQueue(1);
-      console.log("refresh");
+      queueStore.fetchDevicesQueue();
     }
   };
 
   const exitAction = () => {
-    DeviceStore.exitSession();
+    queueStore.exitSession();
     fadeIn(popup!);
+  };
+
+  const hideSnackBar = () => {
+    queueStore.hideSnackbar();
   };
 
   return (
     <div className="overview__container fade-in">
-      <Popup ISetSessionState={sessionResolution} visible={isPopupOpen} />
-      <Devices quantity={devicesInQueue} />
-      {isSessionInProgress && (
+      <Popup
+        ISetSessionState={sessionResolution}
+        visible={queueStore.isPopupOpen}
+      />
+      <Devices quantity={queueStore.devicesInQueue} />
+      {queueStore.isSessionInProgress && (
         <iframe
           id="sessionWindow"
           className="session__frame"
-          src={teleopUrl!}
+          src={queueStore.teleopUrl!}
         />
       )}
       <SessionStarter
-        devicesAvailable={!!devicesInQueue}
+        devicesAvailable={!!queueStore.devicesInQueue}
         action={sessionAction}
       />
 
       <ExitBar action={exitAction} />
+      <Snackbar onclose={hideSnackBar} visible={queueStore.snackbar} />
     </div>
   );
 });
