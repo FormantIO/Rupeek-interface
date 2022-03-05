@@ -17,5 +17,18 @@ export interface intervention {
   data: {
     instruction: string;
   };
-  responses: [];
+  responses: response[];
+}
+
+export interface response {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  interventionType: string;
+  data: {
+    notes?: string;
+    state: string;
+  };
+  interventionId: string;
+  userId: string;
 }

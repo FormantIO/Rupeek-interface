@@ -10,6 +10,7 @@ import { fadeOut } from "../../Utils/fadeOut";
 import { SessionStarter } from "../SessionStarter/SessionStarter";
 import { ExitBar } from "../ExitBar/ExitBar";
 import { Snackbar } from "../Snackbar/Snackbar";
+import loading from "../../../src/components/images/loading.png";
 
 const Overview: FC = observer(() => {
   const { queueStore } = useContext(StoreContext);
@@ -37,6 +38,7 @@ const Overview: FC = observer(() => {
   const sessionAction = () => {
     if (queueStore.devicesInQueue > 0) {
       queueStore.startTeleopSession();
+      // setTimeout(pingApi, 45000);
     } else {
       //If no devices in queue an API call should be made
       queueStore.fetchDevicesQueue();
@@ -50,6 +52,16 @@ const Overview: FC = observer(() => {
 
   const hideSnackBar = () => {
     queueStore.hideSnackbar();
+  };
+
+  const pingApi = () => {
+    console.log("start");
+    const interventionInProgress = () => localStorage.getItem("interventionId");
+    if (queueStore.isSessionInProgress === false) return;
+    console.log("done");
+    if (interventionInProgress() !== null)
+      queueStore.pingAPI(interventionInProgress()!);
+    setTimeout(pingApi, 45000);
   };
 
   return (
@@ -66,10 +78,14 @@ const Overview: FC = observer(() => {
           src={queueStore.teleopUrl!}
         />
       )}
-      <SessionStarter
-        devicesAvailable={!!queueStore.devicesInQueue}
-        action={sessionAction}
-      />
+      {queueStore.isLoading ? (
+        <img src={loading} />
+      ) : (
+        <SessionStarter
+          devicesAvailable={!!queueStore.devicesInQueue}
+          action={sessionAction}
+        />
+      )}
 
       <ExitBar action={exitAction} />
       <Snackbar onclose={hideSnackBar} visible={queueStore.snackbar} />

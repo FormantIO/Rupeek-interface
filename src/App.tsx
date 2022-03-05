@@ -10,8 +10,12 @@ const App: FC = () => {
 
   const saveToken = async () => {
     if (await Authentication.waitTilAuthenticated()) {
+      console.log(Authentication.token);
       localStorage.setItem("authToken", Authentication.token!);
-      console.log(Authentication.token!);
+      localStorage.setItem(
+        "organizationId",
+        Authentication.currentUser?.organizationId!
+      );
     }
   };
 
