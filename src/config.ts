@@ -5,7 +5,4 @@ export const config = {
     "https://api.formant.io/v1/admin/intervention-requests",
   INTERVENTION_RESPONSE_API:
     "https://api.formant.io/v1/admin/intervention-responses",
-  UNATTENDED_WINDOW: 2, //Represents minutes
-  SPOT_ID: "2c18bc8b-c5e4-4ea0-8886-a8363d185597",
-  TURTLE_BOT_ID: "c0fa284e-09ee-4080-9d0f-560592e27929",
 };

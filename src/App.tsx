@@ -2,6 +2,7 @@ import { FC, useEffect } from "react";
 import "./App.scss";
 import Overview from "./components/Overview/Overview";
 import { Authentication } from "@formant/data-sdk";
+import { localStorageService } from "./services/localStorageService";
 
 const App: FC = () => {
   useEffect(() => {
@@ -11,9 +12,7 @@ const App: FC = () => {
   const saveToken = async () => {
     if (await Authentication.waitTilAuthenticated()) {
       console.log(Authentication.token);
-      localStorage.setItem("authToken", Authentication.token!);
-      localStorage.setItem(
-        "organizationId",
+      localStorageService.setOrganizationId(
         Authentication.currentUser?.organizationId!
       );
     }

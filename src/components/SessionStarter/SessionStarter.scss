@@ -2,6 +2,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  img {
+    height: 35px;
+  }
 
   .main__svg__container {
     margin-bottom: 15px;
@@ -16,8 +19,8 @@
     }
     button:hover {
       transition: 200ms ease;
-      width: 150px;
-      height: 42px;
+      width: 148px;
+      height: 35px;
     }
   }
   div {

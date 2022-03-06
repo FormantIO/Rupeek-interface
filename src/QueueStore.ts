@@ -3,9 +3,9 @@ import { QueueService } from "./services/queue.service";
 import { config } from "./config";
 import { defined } from "./define";
 import { intervention, response } from "./types/interventions";
-import { checkIfDeviceUnattended } from "./Utils/checkIfDeviceUnattended";
 import { Authentication, Fleet } from "@formant/data-sdk";
 import { getLatestUpdate } from "./Utils/getLastesUpdate";
+import { localStorageService } from "./services/localStorageService";
 
 export enum sessionResult {
   successful,
@@ -15,11 +15,8 @@ export enum sessionResult {
 export class QueueStore {
   devicesInQueue: number = 0;
   private deviceId: string | null = null;
-  isSessionInProgress: boolean | null = false;
-  teleopUrl: string | null = null;
   isPopupOpen: boolean = false;
   snackbar: boolean = false;
-  organizationId: string | undefined;
   interventionId: string | undefined;
   error: string = "";
   isLoading: boolean = true;
@@ -31,18 +28,18 @@ export class QueueStore {
   }
 
   pingAPI = (id: string) => {
-    if (this.isSessionInProgress) {
-      this.queueService.updateIntervention(id, "inProgress", "ping");
-    }
+    this.queueService.updateIntervention(id, "inProgress", "Session started");
   };
 
   fetchDevicesQueue = async () => {
+    this.setIsLoading(true);
     try {
       if (await Authentication.waitTilAuthenticated()) {
         const queue: intervention[] | string =
           await this.queueService.getQueue();
         if (typeof queue === "string") {
           this.setError(queue);
+          this.setIsLoading(false);
           return;
         }
         const openInterventionRequest =
@@ -51,16 +48,22 @@ export class QueueStore {
           openInterventionRequest
         );
         this.setDevicesInQueue(availableSessions.length);
+        this.getNextDevice(availableSessions);
         this.setIsLoading(false);
-
-        const nextDevice = this.getNextDevice(openInterventionRequest);
+        if (localStorageService.getIsSessionInProgress() === "true") {
+          this.setIsLoading(true);
+        }
       }
     } catch (error) {
       this.setError("Something went wrong");
     }
   };
 
-  checkIfSessionOnline = async (_: string) => {
+  getNextDevice = (_: intervention[]) => {
+    this.setDeviceId(_[0].deviceId);
+    localStorageService.setInterventionId(_[0].id);
+  };
+  checkIfDeviceIsAvailable = async (_: string) => {
     const currentDevice = await Fleet.getDevice(_);
     const session = await currentDevice.isInRealtimeSession();
     return !session;
@@ -68,40 +71,40 @@ export class QueueStore {
 
   filterOnlineSessions = async (_: intervention[]) => {
     const onlineSessions = await Promise.all(
-      _.map((_) => this.checkIfSessionOnline(_.deviceId!))
+      _.map((_) => this.checkIfDeviceIsAvailable(_.deviceId!))
     );
     return _.filter((_, idx) => onlineSessions[idx]);
   };
 
-  getNextDevice = (_: intervention[]) => {
-    return _.some(async (_) => {
-      const currentDevice = await Fleet.getDevice(_.deviceId!);
-      const isInRealtimeSession = await currentDevice.isInRealtimeSession();
-      if (!isInRealtimeSession) {
-        this.setDeviceId(_.deviceId);
-        localStorage.setItem("interventionId", _.id);
-        return _;
-      }
-    });
-  };
-
   startTeleopSession = async () => {
+    localStorageService.setIsSessionInProgress("true");
     this.setIsLoading(true);
-    this.setIsSessionInProgress(true);
-    const token = () => localStorage.getItem("authToken");
-    const interventionId = () => localStorage.getItem("interventionId");
-
-    if (!this.deviceId || !Authentication.token || !interventionId()) {
-      this.setIsSessionInProgress(false);
-      this.setTeleopUrl(null);
+    if (
+      !this.deviceId ||
+      !Authentication.token ||
+      !localStorageService.getInterventionId()
+    ) {
+      localStorageService.setIsSessionInProgress("false");
       this.setError("unknown device");
+      this.setIsLoading(false);
       return;
     }
+    const isDeviceAvailable = await this.checkIfDeviceIsAvailable(
+      this.deviceId
+    );
 
-    this.pingAPI(interventionId()!);
+    if (!isDeviceAvailable) {
+      localStorageService.setIsSessionInProgress("false");
+      this.setError("Target device was taken");
+      this.setIsLoading(false);
 
-    this.setTeleopUrl(
-      `${config.TELEOP__API}/${defined(this.deviceId)}?token=${token()}`
+      return;
+    }
+    this.pingAPI(localStorageService.getInterventionId()!);
+    localStorageService.setTeleopURL(
+      `${config.TELEOP__API}/${defined(this.deviceId)}?token=${
+        Authentication.token
+      }`
     );
   };
 
@@ -115,15 +118,14 @@ export class QueueStore {
       this.clearSession();
       this.showSnackbar();
     } catch (error) {
-      console.log(error);
+      this.setError("Something went wrong!");
     }
   };
 
   filterWithInOrganizationOpenRequests = (_: intervention[]) => {
-    const organizationId = () => localStorage.getItem("organizationId");
     return _.filter((_) => {
       if (
-        _.organizationId === organizationId() &&
+        _.organizationId === localStorageService.getOrganizationId() &&
         _.interventionType === "teleop" &&
         _.deviceId !== null
       ) {
@@ -147,10 +149,8 @@ export class QueueStore {
   }
 
   clearSession() {
+    localStorageService.clearSession();
     this.setIsPopUpOpen(false);
-    this.setIsSessionInProgress(false);
-    this.setTeleopUrl(null);
-    localStorage.removeItem("interventionId");
   }
 
   exitSession() {
@@ -158,20 +158,12 @@ export class QueueStore {
   }
 
   //SETTERS
-  setOrganizationId = (_: string | undefined) => {
-    this.organizationId = _;
-  };
+
   setDevicesInQueue = (_: number) => {
     this.devicesInQueue = _;
   };
   setDeviceId = (_: string | null) => {
     this.deviceId = _;
-  };
-  setIsSessionInProgress = (_: boolean) => {
-    this.isSessionInProgress = _;
-  };
-  setTeleopUrl = (_: string | null) => {
-    this.teleopUrl = _;
   };
   setIsPopUpOpen = (_: boolean) => {
     this.isPopupOpen = _;

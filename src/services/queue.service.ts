@@ -49,7 +49,7 @@ export class QueueService {
     const parsedResponse = await response.json();
 
     if (parsedResponse.message !== undefined) {
-      console.log(parsedResponse.message);
+      return parsedResponse.message;
     }
 
     return parsedResponse;
