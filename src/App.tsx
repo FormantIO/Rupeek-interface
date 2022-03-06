@@ -11,7 +11,6 @@ const App: FC = () => {
 
   const saveToken = async () => {
     if (await Authentication.waitTilAuthenticated()) {
-      console.log(Authentication.token);
       localStorageService.setOrganizationId(
         Authentication.currentUser?.organizationId!
       );
