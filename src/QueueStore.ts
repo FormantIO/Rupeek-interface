@@ -44,18 +44,21 @@ export class QueueStore {
         }
         const openInterventionRequest =
           this.filterWithInOrganizationOpenRequests(queue);
+
         const availableSessions = await this.filterOnlineSessions(
           openInterventionRequest
         );
+
         this.setDevicesInQueue(availableSessions.length);
-        this.getNextDevice(availableSessions);
+        if (availableSessions.length > 0) this.getNextDevice(availableSessions);
+
         this.setIsLoading(false);
         if (localStorageService.getIsSessionInProgress() === "true") {
           this.setIsLoading(true);
         }
       }
     } catch (error) {
-      this.setError("Something went wrong");
+      this.setError("Cannot update queue ");
     }
   };
 
