@@ -2,7 +2,7 @@ import { DeviceIcon } from "../../icons/DeviceIcon";
 import { Button } from "../Button/Button";
 import "./SessionStarter.scss";
 import { FC } from "react";
-import loading from "../../../src/components/images/loading.png";
+import loading from "../images/loading.png";
 
 interface ISessionStarterProps {
   action: () => void;
