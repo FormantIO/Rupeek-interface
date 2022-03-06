@@ -10,7 +10,6 @@ export const ExitBar: FC<IExitBarProps> = ({ action }) => {
   useEffect(() => {
     if (localStorageService.getIsSessionInProgress() === "true") {
       const closebtn = document.querySelector(".close__btn") as HTMLElement;
-      console.log("closebtn");
       setTimeout(() => {
         closebtn!.style.display = "flex";
       }, 3000);
