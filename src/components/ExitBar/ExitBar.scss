@@ -2,7 +2,7 @@
   cursor: pointer;
   width: 54px;
   height: 28px;
-  background-color: transparent;
+  background-color: #ea719d;
   box-shadow: 0 0 0 0 #ea719d;
   outline: none;
   border: none;
@@ -14,7 +14,8 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease-in-out;
-  color: transparent;
+  // color: transparent;
+  color: black;
 }
 .close__btn:hover {
   transform: scale(1.5px);

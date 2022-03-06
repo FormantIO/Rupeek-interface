@@ -2,12 +2,26 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  img {
+    height: 35px;
+  }
 
   .main__svg__container {
     margin-bottom: 15px;
   }
   .main__button__container {
-    margin-top: 40px;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    button {
+      transition: 200ms ease;
+    }
+    button:hover {
+      transition: 200ms ease;
+      width: 148px;
+      height: 35px;
+    }
   }
   div {
     display: flex;
