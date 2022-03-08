@@ -1,7 +1,7 @@
 import { FC, useEffect } from "react";
 import "./App.scss";
 import Overview from "./components/Overview/Overview";
-import { Authentication } from "@formant/data-sdk";
+import { Authentication, Fleet } from "@formant/data-sdk";
 import { localStorageService } from "./services/localStorageService";
 
 const App: FC = () => {

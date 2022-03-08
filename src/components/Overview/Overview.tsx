@@ -20,7 +20,7 @@ const Overview: FC = observer(() => {
 
   useEffect(() => {
     queueStore.fetchDevicesQueue();
-  }, [localStorageService.getIsSessionInProgress()]);
+  }, []);
 
   const sessionResolution = (_: sessionResult) => {
     if (_ === sessionResult.successful || _ === sessionResult.unsuccesful) {

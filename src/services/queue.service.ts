@@ -25,6 +25,17 @@ export class QueueService {
 
     return parsedResponse.items;
   };
+  getIntervention = async (_: string): Promise<string | intervention> => {
+    const response = await fetch(`${config.INTERVENTION_REQUEST_API}/${_}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + Authentication.token,
+      },
+    });
+    const parsedResponse = await response.json();
+    return parsedResponse;
+  };
 
   updateIntervention = async (
     interventionId: string,

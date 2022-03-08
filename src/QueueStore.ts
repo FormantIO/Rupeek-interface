@@ -20,15 +20,21 @@ export class QueueStore {
   interventionId: string | undefined;
   error: string = "";
   isLoading: boolean = true;
+  latestQueue: intervention[] = [];
 
   constructor(private readonly queueService: QueueService) {
     makeAutoObservable(this);
     this.devicesInQueue = 0;
     this.isLoading = true;
+    this.latestQueue = [];
   }
 
-  pingAPI = (id: string) => {
-    this.queueService.updateIntervention(id, "inProgress", "Session started");
+  pingAPI = async (id: string, notes: string) => {
+    await this.queueService.updateIntervention(
+      id,
+      "inProgress",
+      "Session started"
+    );
   };
 
   fetchDevicesQueue = async () => {
@@ -50,22 +56,17 @@ export class QueueStore {
         );
 
         this.setDevicesInQueue(availableSessions.length);
-        if (availableSessions.length > 0) this.getNextDevice(availableSessions);
-
+        this.setLatestQueue(availableSessions);
         this.setIsLoading(false);
         if (localStorageService.getIsSessionInProgress() === "true") {
           this.setIsLoading(true);
         }
       }
     } catch (error) {
-      this.setError("Cannot update queue ");
+      this.setError("Unable to update queue");
     }
   };
 
-  getNextDevice = (_: intervention[]) => {
-    this.setDeviceId(_[0].deviceId);
-    localStorageService.setInterventionId(_[0].id);
-  };
   checkIfDeviceIsAvailable = async (_: string) => {
     const currentDevice = await Fleet.getDevice(_);
     const session = await currentDevice.isInRealtimeSession();
@@ -76,39 +77,89 @@ export class QueueStore {
     const onlineSessions = await Promise.all(
       _.map((_) => this.checkIfDeviceIsAvailable(_.deviceId!))
     );
-    return _.filter((_, idx) => onlineSessions[idx]);
+    return _.filter(
+      (_, idx) =>
+        onlineSessions[idx] &&
+        (_.responses.length === 0 ||
+          getLatestUpdate(_.responses)?.data.notes !== "Session started")
+    );
   };
 
+  checkIfCurrentDeviceAvailable = async (_: string): Promise<boolean> => {
+    try {
+      const intervention: intervention | string =
+        await this.queueService.getIntervention(_);
+      if (typeof intervention === "string") {
+        this.setIsLoading(false);
+        return false;
+      }
+      const lastUpdate = getLatestUpdate(intervention.responses);
+      if (
+        lastUpdate?.data.notes === "Session started" ||
+        lastUpdate?.data.state === "inProgress"
+      )
+        return false;
+
+      return true;
+    } catch {
+      return false;
+    }
+  };
+
+  setNextDevice = async (_: intervention[]) => {
+    for (let i = 0; i < _.length; i++) {
+      const isDeviceCurrentlyAvailable =
+        await this.checkIfCurrentDeviceAvailable(_[i].id);
+      if (isDeviceCurrentlyAvailable) {
+        localStorageService.setIsSessionInProgress("true");
+        await this.pingAPI(_[i].id, "Session started");
+        localStorageService.setInterventionId(_[i].id);
+        this.setDeviceId(this.latestQueue[i].deviceId);
+        break;
+      }
+    }
+  };
   startTeleopSession = async () => {
-    localStorageService.setIsSessionInProgress("true");
     this.setIsLoading(true);
-    if (
-      !this.deviceId ||
-      !Authentication.token ||
-      !localStorageService.getInterventionId()
-    ) {
-      localStorageService.setIsSessionInProgress("false");
-      this.setError("unknown device");
+
+    if (this.latestQueue.length === 0) {
+      localStorageService.clearSession();
+      this.setError("No devices available");
       this.setIsLoading(false);
       return;
     }
+
+    await this.setNextDevice(this.latestQueue);
+
+    if (
+      this.deviceId === null ||
+      !Authentication.token ||
+      !localStorageService.getInterventionId()
+    ) {
+      localStorageService.clearSession();
+      this.setError("No devices available");
+      this.setIsLoading(false);
+      return;
+    }
+
     const isDeviceAvailable = await this.checkIfDeviceIsAvailable(
       this.deviceId
     );
 
     if (!isDeviceAvailable) {
       localStorageService.setIsSessionInProgress("false");
-      this.setError("Target device was taken");
+      this.setError("Target device already taken");
       this.setIsLoading(false);
-
       return;
     }
-    this.pingAPI(localStorageService.getInterventionId()!);
+
+    this.pingAPI(localStorageService.getInterventionId()!, "Session connected");
     localStorageService.setTeleopURL(
       `${config.TELEOP__API}/${defined(this.deviceId)}?token=${
         Authentication.token
       }`
     );
+    this.setIsLoading(false);
   };
 
   completeIntervention = async (_: sessionResult) => {
@@ -120,8 +171,9 @@ export class QueueStore {
       );
       this.clearSession();
       this.showSnackbar();
+      this.fetchDevicesQueue();
     } catch (error) {
-      this.setError("Something went wrong!");
+      this.setError("Error occurred");
     }
   };
 
@@ -161,6 +213,10 @@ export class QueueStore {
   }
 
   //SETTERS
+
+  setLatestQueue = (_: intervention[]) => {
+    this.latestQueue = _;
+  };
 
   setDevicesInQueue = (_: number) => {
     this.devicesInQueue = _;
