@@ -41,11 +41,6 @@ const Overview: FC = observer(() => {
     queueStore.exitSession();
     fadeIn(popup!);
   };
-
-  const hideSnackBar = () => {
-    queueStore.hideSnackbar();
-  };
-
   const cleanError = () => {
     queueStore.setError("");
   };
@@ -69,7 +64,7 @@ const Overview: FC = observer(() => {
       {!queueStore.isSessionInProgress && (
         <SessionStarter
           devicesAvailable={!!queueStore.devicesInQueue}
-          action={queueStore.showSnackbar}
+          action={sessionAction}
           isLoading={queueStore.isLoading}
         />
       )}

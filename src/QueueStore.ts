@@ -114,7 +114,7 @@ export class QueueStore {
       const isDeviceCurrentlyAvailable =
         await this.checkIfCurrentDeviceAvailable(_[i].id);
       if (isDeviceCurrentlyAvailable) {
-        // await this.pingAPI(_[i].id, "Session started");
+        await this.pingAPI(_[i].id, "Session started");
         localStorageService.setInterventionId(_[i].id);
         this.setDeviceId(this.latestQueue[i].deviceId);
         break;
@@ -156,7 +156,7 @@ export class QueueStore {
     }
     localStorageService.setIsSessionInProgress("true");
 
-    // this.pingAPI(localStorageService.getInterventionId()!, "Session connected");
+    this.pingAPI(localStorageService.getInterventionId()!, "Session connected");
     localStorageService.setTeleopURL(
       `${config.TELEOP__API}/${defined(this.deviceId)}?token=${
         Authentication.token
