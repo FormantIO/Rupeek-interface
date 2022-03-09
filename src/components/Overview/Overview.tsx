@@ -56,8 +56,9 @@ const Overview: FC = observer(() => {
         ISetSessionState={sessionResolution}
         visible={queueStore.isPopupOpen}
       />
-      <Devices quantity={queueStore.devicesInQueue} />
-
+      {!queueStore.isLoading && (
+        <Devices quantity={queueStore.devicesInQueue} />
+      )}
       {localStorageService.getIsSessionInProgress() === "true" && (
         <iframe
           id="sessionWindow"
@@ -65,17 +66,20 @@ const Overview: FC = observer(() => {
           src={localStorageService.getTeleopURL()!}
         />
       )}
-
-      <SessionStarter
-        devicesAvailable={!!queueStore.devicesInQueue}
-        action={sessionAction}
-        isLoading={queueStore.isLoading}
-      />
-
+      {!queueStore.isSessionInProgress && (
+        <SessionStarter
+          devicesAvailable={!!queueStore.devicesInQueue}
+          action={queueStore.showSnackbar}
+          isLoading={queueStore.isLoading}
+        />
+      )}
       {localStorageService.getIsSessionInProgress() === "true" && (
         <ExitBar action={exitAction} />
       )}
-      <Snackbar onclose={hideSnackBar} visible={queueStore.snackbar} />
+      <Snackbar
+        visible={queueStore.snackbar}
+        hideSnackBar={queueStore.hideSnackbar}
+      />
       {queueStore.error.length > 0 && (
         <ErrorMsg msg={queueStore.error} onClose={cleanError} />
       )}

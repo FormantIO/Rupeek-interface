@@ -12,7 +12,7 @@ export const ExitBar: FC<IExitBarProps> = ({ action }) => {
       const closebtn = document.querySelector(".close__btn") as HTMLElement;
       setTimeout(() => {
         closebtn!.style.display = "flex";
-      }, 5000);
+      }, 7000);
     }
   }, []);
 

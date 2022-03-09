@@ -21,12 +21,15 @@ export class QueueStore {
   error: string = "";
   isLoading: boolean = true;
   latestQueue: intervention[] = [];
+  isSessionInProgress: boolean = false;
 
   constructor(private readonly queueService: QueueService) {
     makeAutoObservable(this);
     this.devicesInQueue = 0;
     this.isLoading = true;
     this.latestQueue = [];
+    this.isSessionInProgress = false;
+    this.snackbar = false;
   }
 
   pingAPI = async (id: string, notes: string) => {
@@ -111,8 +114,7 @@ export class QueueStore {
       const isDeviceCurrentlyAvailable =
         await this.checkIfCurrentDeviceAvailable(_[i].id);
       if (isDeviceCurrentlyAvailable) {
-        localStorageService.setIsSessionInProgress("true");
-        await this.pingAPI(_[i].id, "Session started");
+        // await this.pingAPI(_[i].id, "Session started");
         localStorageService.setInterventionId(_[i].id);
         this.setDeviceId(this.latestQueue[i].deviceId);
         break;
@@ -152,13 +154,15 @@ export class QueueStore {
       this.setIsLoading(false);
       return;
     }
+    localStorageService.setIsSessionInProgress("true");
 
-    this.pingAPI(localStorageService.getInterventionId()!, "Session connected");
+    // this.pingAPI(localStorageService.getInterventionId()!, "Session connected");
     localStorageService.setTeleopURL(
       `${config.TELEOP__API}/${defined(this.deviceId)}?token=${
         Authentication.token
       }`
     );
+    this.setIsSessionInProgress(true);
     this.setIsLoading(false);
   };
 
@@ -196,23 +200,28 @@ export class QueueStore {
     });
   };
 
-  showSnackbar() {
+  showSnackbar = () => {
     this.snackbar = true;
-  }
-  hideSnackbar() {
+  };
+  hideSnackbar = () => {
     this.snackbar = false;
-  }
+  };
 
   clearSession() {
     localStorageService.clearSession();
+    this.setIsSessionInProgress(false);
     this.setIsPopUpOpen(false);
   }
 
-  exitSession() {
+  exitSession = () => {
     this.isPopupOpen = true;
-  }
+  };
 
   //SETTERS
+
+  setIsSessionInProgress = (_: boolean) => {
+    this.isSessionInProgress = _;
+  };
 
   setLatestQueue = (_: intervention[]) => {
     this.latestQueue = _;

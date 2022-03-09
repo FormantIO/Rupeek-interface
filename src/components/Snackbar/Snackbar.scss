@@ -1,16 +1,17 @@
 .snackbar {
   background-color: #20a0ff;
+  display: flex;
   z-index: 50;
   height: 64px;
-  display: none;
   align-items: center;
   justify-content: space-between;
   padding-right: 22px;
   padding-left: 22px;
   border-radius: 6px;
   position: absolute;
-  bottom: 20px;
+  bottom: 30px;
   right: 30px;
+  transform: translateX(500px);
   span {
     font-weight: 600;
     letter-spacing: 1px;
