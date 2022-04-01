@@ -1,11 +1,12 @@
 import "./Devices.scss";
 import { DeviceIcon } from "../../icons/DeviceIcon";
+import { observer } from "mobx-react";
 
 interface DevicesProps {
   quantity?: number;
 }
 
-export const Devices = (props: DevicesProps) => {
+export const Devices = observer((props: DevicesProps) => {
   return (
     <div className="devices__container">
       <DeviceIcon size={24} color="#bac4e2" />
@@ -17,4 +18,4 @@ export const Devices = (props: DevicesProps) => {
       </div>
     </div>
   );
-};
+});

@@ -19,8 +19,15 @@ const Overview: FC = observer(() => {
   const popup = document.getElementById("popup");
 
   useEffect(() => {
-    queueStore.fetchDevicesQueue();
-  }, []);
+    refreshQueue();
+  }, [localStorageService.getIsSessionInProgress()]);
+
+  const refreshQueue = async () => {
+    while (localStorageService.getIsSessionInProgress() !== "true") {
+      await queueStore.fetchDevicesQueue();
+      await timeout(5000);
+    }
+  };
 
   const sessionResolution = (_: sessionResult) => {
     if (_ === sessionResult.successful || _ === sessionResult.unsuccesful) {
@@ -28,6 +35,10 @@ const Overview: FC = observer(() => {
       queueStore.completeIntervention(_);
     } else if (_ === sessionResult.notDoneYet) fadeOut(popup!);
   };
+
+  function timeout(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
 
   const sessionAction = () => {
     if (queueStore.devicesInQueue > 0) {
@@ -51,7 +62,7 @@ const Overview: FC = observer(() => {
         ISetSessionState={sessionResolution}
         visible={queueStore.isPopupOpen}
       />
-      {!queueStore.isLoading && (
+      {localStorageService.getIsSessionInProgress() !== "true" && (
         <Devices quantity={queueStore.devicesInQueue} />
       )}
       {localStorageService.getIsSessionInProgress() === "true" && (

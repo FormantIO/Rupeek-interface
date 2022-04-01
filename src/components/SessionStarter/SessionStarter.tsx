@@ -3,7 +3,6 @@ import { Button } from "../Button/Button";
 import "./SessionStarter.scss";
 import { FC } from "react";
 import loading from "../images/loading.png";
-
 interface ISessionStarterProps {
   action: () => void;
   devicesAvailable: boolean;
@@ -29,11 +28,13 @@ export const SessionStarter: FC<ISessionStarterProps> = ({
                 : "Currently no devices need assistance"}
             </p>
           </div>
-          <div className="main__button__container">
-            <Button size="large" onClick={action}>
-              {devicesAvailable ? "START SESSION" : "REFRESH"}
-            </Button>
-          </div>
+          {devicesAvailable && (
+            <div className="main__button__container">
+              <Button size="large" onClick={action}>
+                START SESSION
+              </Button>
+            </div>
+          )}
         </>
       )}
     </div>

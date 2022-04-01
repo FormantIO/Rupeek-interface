@@ -26,7 +26,7 @@ export class QueueStore {
   constructor(private readonly queueService: QueueService) {
     makeAutoObservable(this);
     this.devicesInQueue = 0;
-    this.isLoading = true;
+    this.isLoading = false;
     this.latestQueue = [];
     this.isSessionInProgress = false;
     this.snackbar = false;
@@ -41,7 +41,6 @@ export class QueueStore {
   };
 
   fetchDevicesQueue = async () => {
-    this.setIsLoading(true);
     try {
       if (await Authentication.waitTilAuthenticated()) {
         const queue: intervention[] | string =
@@ -54,12 +53,8 @@ export class QueueStore {
         const openInterventionRequest =
           this.filterWithInOrganizationOpenRequests(queue);
 
-        const availableSessions = await this.filterOnlineSessions(
-          openInterventionRequest
-        );
-
-        this.setDevicesInQueue(availableSessions.length);
-        this.setLatestQueue(availableSessions);
+        this.setDevicesInQueue(openInterventionRequest.length);
+        this.setLatestQueue(openInterventionRequest);
         this.setIsLoading(false);
         if (localStorageService.getIsSessionInProgress() === "true") {
           this.setIsLoading(true);
@@ -74,18 +69,6 @@ export class QueueStore {
     const currentDevice = await Fleet.getDevice(_);
     const session = await currentDevice.isInRealtimeSession();
     return !session;
-  };
-
-  filterOnlineSessions = async (_: intervention[]) => {
-    const onlineSessions = await Promise.all(
-      _.map((_) => this.checkIfDeviceIsAvailable(_.deviceId!))
-    );
-    return _.filter(
-      (_, idx) =>
-        onlineSessions[idx] &&
-        (_.responses.length === 0 ||
-          getLatestUpdate(_.responses)?.data.notes !== "Session started")
-    );
   };
 
   checkIfCurrentDeviceAvailable = async (_: string): Promise<boolean> => {
@@ -171,7 +154,7 @@ export class QueueStore {
     try {
       const response = await this.queueService.completeIntervention(
         interventionId()!,
-        _ === sessionResult.successful ? "success" : "failure"
+        _ === sessionResult.successful ? "success" : "requestAssistance"
       );
       this.clearSession();
       this.showSnackbar();
@@ -182,7 +165,9 @@ export class QueueStore {
   };
 
   filterWithInOrganizationOpenRequests = (_: intervention[]) => {
-    return _.filter((_) => {
+    //Filter out other organization requests,
+    //and sessions that are mark as complete, or currently in progress
+    const openInterventions = _.filter((_) => {
       if (
         _.organizationId === localStorageService.getOrganizationId() &&
         _.interventionType === "teleop" &&
@@ -192,12 +177,18 @@ export class QueueStore {
         let latestUpdate = getLatestUpdate(_.responses);
         if (
           latestUpdate!.data.state === "success" ||
-          latestUpdate!.data.state === "failure"
+          latestUpdate!.data.state === "failure" ||
+          latestUpdate!.data.state === "inProgress" ||
+          latestUpdate?.userId === Authentication.currentUser?.id
         )
           return;
+
         return _;
       }
     });
+    return openInterventions.sort(
+      (a, b) => (new Date(a.createdAt) as any) - (new Date(b.createdAt) as any)
+    );
   };
 
   showSnackbar = () => {

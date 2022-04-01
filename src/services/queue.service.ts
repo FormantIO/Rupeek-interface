@@ -66,7 +66,10 @@ export class QueueService {
     return parsedResponse;
   };
 
-  completeIntervention = async (id: string, _: "success" | "failure") => {
+  completeIntervention = async (
+    id: string,
+    _: "success" | "failure" | "requestAssistance"
+  ) => {
     const response = await fetch(config.INTERVENTION_RESPONSE_API, {
       method: "POST",
       body: JSON.stringify({
