@@ -1,1 +1,1 @@
-formant
+formant==1.76.*
