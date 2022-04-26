@@ -1,4 +1,4 @@
-from formant.sdk.agent.v1 import Client as FormantClient
+from formant.sdk.agent.v1 import Client as AgentClient
 from formant.sdk.cloud.v1 import Client as CloudClient
 import os
 
@@ -7,13 +7,16 @@ class InterventionClient:
     def __init__(
         self,
     ):
-        agent_url = "unix:///var/lib/formant/agent.sock"  # type: str
-        self.agent_url = os.getenv("AGENT_URL", agent_url)
-        self._fclient = FormantClient(agent_url=self.agent_url, ignore_throttled=True)
-        self.internvention_id = ""
+        agent_url = "unix:///var/lib/formant/agent.sock"
+        self.agent_url = os.getenv(agent_url)
+        self._cloud_client = CloudClient()
+        self._agent_client = AgentClient(
+            agent_url=self.agent_url, ignore_throttled=True
+        )
+        self.internvention_id = ""  # type: str
 
     def create_intervention_request(self):
-        intervention_response = self._fclient.create_teleop_intervention_request(
+        intervention_response = self._agent_client.create_teleop_intervention_request(
             "Assist Client"
         )
         self.internvention_id = intervention_response.id
@@ -24,7 +27,4 @@ class InterventionClient:
             "interventionType": "teleop",
             "data": {"state": "failure", "notes": "removed from queue"},
         }
-        CloudClient.create_intervention_response(params)
-
-    def run(self):
-        self.create_intervention_request()
+        self._cloud_client.create_intervention_response(params)
