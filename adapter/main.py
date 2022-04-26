@@ -1,4 +1,4 @@
-from create_intervention_request import InterventionClient
+from intervention_client import InterventionClient
 
 if __name__ == "__main__":
     client = InterventionClient()
